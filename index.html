@@ -6,7 +6,7 @@
     <title>Work In Progress</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Gradient background */
+        /* Dark mode gradient background with animation */
         body {
             display: flex;
             justify-content: center;
@@ -14,10 +14,18 @@
             height: 100vh;
             margin: 0;
             font-family: 'Fredoka', sans-serif;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #1a1a2e);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
             color: white;
             flex-direction: column;
             overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* Blurred floating circles */
@@ -47,7 +55,72 @@
             100% { transform: translateY(0) scale(1); }
         }
 
-        /* Cool Spinning Loading Circle */
+        /* Comet-like circles */
+        .comet {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
+            border-radius: 50%;
+            filter: blur(2px);
+        }
+
+        /* Animated grid lines */
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 24px,
+                rgba(255, 255, 255, 0.05) 24px,
+                rgba(255, 255, 255, 0.05) 25px
+            ),
+            repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 24px,
+                rgba(255, 255, 255, 0.05) 24px,
+                rgba(255, 255, 255, 0.05) 25px
+            );
+            animation: gridMove 10s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-25px); }
+        }
+
+        /* Sparkling stars */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Cool Spinning Loading Circle with Trail */
         .loader {
             position: relative;
             width: 100px;
@@ -65,6 +138,20 @@
             -webkit-mask: radial-gradient(transparent 50%, #000 50%);
             animation: spin 2s linear infinite, glow 3s infinite alternate ease-in-out;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(255, 255, 255, 0.2);
+        }
+
+        .loader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            filter: blur(10px);
+            z-index: -1;
+            animation: spin 2s linear infinite reverse;
         }
 
         @keyframes spin {
@@ -93,6 +180,8 @@
 </head>
 <body>
     <div class="background-bubbles" id="bubble-container"></div>
+    <div class="grid-lines"></div>
+    <div class="stars" id="star-container"></div>
     <div class="loader" id="loader"></div>
     <div class="text">Work In Progress</div>
 
@@ -110,6 +199,64 @@
                 bubble.style.height = bubble.style.width;
                 bubbleContainer.appendChild(bubble);
             }
+        }
+
+        // Function to create stars
+        function createStars(count) {
+            const starContainer = document.getElementById('star-container');
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                starContainer.appendChild(star);
+            }
+        }
+
+        // Function to create comets
+        function createComets() {
+            setInterval(() => {
+                const comet = document.createElement('div');
+                comet.classList.add('comet');
+                comet.style.top = `${Math.random() * 100}%`;
+                comet.style.left = `-100px`; // Start off-screen
+                document.body.appendChild(comet);
+
+                let mouseX = 0, mouseY = 0;
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+
+                const cometFly = () => {
+                    const rect = comet.getBoundingClientRect();
+                    const cometX = rect.left + rect.width / 2;
+                    const cometY = rect.top + rect.height / 2;
+
+                    // Calculate distance to mouse
+                    const dx = mouseX - cometX;
+                    const dy = mouseY - cometY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    // Move comet horizontally
+                    comet.style.left = `${rect.left + 2}px`;
+
+                    // Slightly attract comet to mouse
+                    if (distance < 200) {
+                        comet.style.top = `${rect.top + dy * 0.02}px`;
+                    }
+
+                    // Remove comet when it goes off-screen
+                    if (rect.left > window.innerWidth) {
+                        comet.remove();
+                    } else {
+                        requestAnimationFrame(cometFly);
+                    }
+                };
+
+                cometFly();
+            }, 3000); // Create a comet every 3 seconds
         }
 
         // Function to make the loader float around like GitHub's homepage
@@ -135,6 +282,8 @@
 
         // Initialize
         createBubbles(30); // Create 30 bubbles
+        createStars(100); // Create 100 stars
+        createComets(); // Create comets
         floatLoader(); // Make the loader float around
     </script>
 </body>
